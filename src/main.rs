@@ -21,6 +21,22 @@ fn add(name: String) {
     println!("User added in DB: {name}");
 }
 
+fn update(current_value: String, new_value: String) {
+    let contents: Result<String, std::io::Error> = fs::read_to_string("user.json");
+    let mut user_array: Vec<User> = match contents {
+        Ok(content) => serde_json::from_str(&content).expect("Failed to deserialize"),
+        Err(_error) => Vec::new(),
+    };
+    if let Some(index) = user_array.iter().position(|u| u.name == current_value) {
+        user_array[index].name = new_value.clone();
+        let serialized_users = serde_json::to_string(&user_array).expect("Failed to serialize");
+        fs::write("user.json", serialized_users).expect("Failed to write to file");
+        println!("User name updated in DB : from {current_value} to {new_value}");
+    } else {
+        println!("Unable to find user with given name {current_value}");
+    }
+}
+
 fn display() {
     let contents: Result<String, std::io::Error> = fs::read_to_string("user.json");
     let user_array: Vec<User> = match contents {
@@ -56,6 +72,13 @@ fn main() {
                         println!("Not enough arguments for 'add' command");
                     } else {
                         add(input_array[1].trim().to_string());
+                    }
+                }
+                "update" => {
+                    if input_array.len() < 3 {
+                        println!("Not enough arguments for 'add' command");
+                    } else {
+                        update(input_array[1].trim().to_string(),input_array[2].trim().to_string());
                     }
                 }
                 _ => println!("Invalid Input"),
