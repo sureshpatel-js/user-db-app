@@ -8,27 +8,27 @@ struct User {
     name: String,
 }
 
-fn add(name: String) {
+fn add(name: &str) {
     let contents: Result<String, std::io::Error> = fs::read_to_string("user.json");
     let mut user_array: Vec<User> = match contents {
         Ok(content) => serde_json::from_str(&content).expect("Failed to deserialize"),
         Err(_error) => Vec::new(),
     };
-    let new_user = User { name: name.clone() };
+    let new_user = User { name: name.to_string().clone() };
     user_array.push(new_user);
     let serialized_users = serde_json::to_string(&user_array).expect("Failed to serialize");
     fs::write("user.json", serialized_users).expect("Failed to write to file");
     println!("User added in DB: {name}");
 }
 
-fn update(current_value: String, new_value: String) {
+fn update(current_value: &str, new_value: &str) {
     let contents: Result<String, std::io::Error> = fs::read_to_string("user.json");
     let mut user_array: Vec<User> = match contents {
         Ok(content) => serde_json::from_str(&content).expect("Failed to deserialize"),
         Err(_error) => Vec::new(),
     };
     if let Some(index) = user_array.iter().position(|u| u.name == current_value) {
-        user_array[index].name = new_value.clone();
+        user_array[index].name = new_value.to_string().clone();
         let serialized_users = serde_json::to_string(&user_array).expect("Failed to serialize");
         fs::write("user.json", serialized_users).expect("Failed to write to file");
         println!("User name updated in DB : from {current_value} to {new_value}");
@@ -71,14 +71,14 @@ fn main() {
                     if input_array.len() < 2 {
                         println!("Not enough arguments for 'add' command");
                     } else {
-                        add(input_array[1].trim().to_string());
+                        add(input_array[1].trim());
                     }
                 }
                 "update" => {
                     if input_array.len() < 3 {
                         println!("Not enough arguments for 'add' command");
                     } else {
-                        update(input_array[1].trim().to_string(),input_array[2].trim().to_string());
+                        update(input_array[1].trim(), input_array[2].trim());
                     }
                 }
                 _ => println!("Invalid Input"),
